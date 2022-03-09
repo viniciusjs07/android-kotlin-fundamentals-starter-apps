@@ -56,28 +56,15 @@ class GameFragment : Fragment() {
         Log.i("GameFragment", "Called ViewModelProvider.get")
         viewModel = ViewModelProvider(this).get(GameViewModel::class.java)
 
-        updateScoreText()
-        updateWordText()
+        // Set the viewmodel for databinding - this allows the bound layout access
+        // to all the data in the ViewModel
+        binding.gameViewModel= viewModel
+        binding.lifecycleOwner = viewLifecycleOwner
+
         onDetectFinishedGame()
-
-        binding.correctButton.setOnClickListener { onCorrect() }
-        binding.skipButton.setOnClickListener { onSkip() }
-        binding.endGameButton.setOnClickListener { onEndGame() }
-
         return binding.root
 
     }
-
-    /** Methods for buttons presses **/
-
-    private fun onSkip() {
-        viewModel.onSkip()
-    }
-
-    private fun onCorrect() {
-        viewModel.onCorrect()
-    }
-
 
     /** Methods for updating the UI **/
 
@@ -99,10 +86,6 @@ class GameFragment : Fragment() {
         viewModel.score.observe(viewLifecycleOwner, Observer { newScore ->
             binding.scoreText.text = newScore.toString()
         })
-    }
-
-    private fun onEndGame() {
-        gameFinished()
     }
 
     /**
