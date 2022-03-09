@@ -22,7 +22,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.android.guesstheword.R
 import com.example.android.guesstheword.databinding.ScoreFragmentBinding
 
@@ -33,6 +35,8 @@ class ScoreFragment : Fragment() {
 
     private lateinit var viewModel: ScoreViewModel
     private lateinit var viewModelFactory: ScoreViewModelFactory
+    private lateinit var binding: ScoreFragmentBinding
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,7 +45,7 @@ class ScoreFragment : Fragment() {
     ): View? {
 
         // Inflate view and obtain an instance of the binding class.
-        val binding: ScoreFragmentBinding = DataBindingUtil.inflate(
+        binding = DataBindingUtil.inflate(
             inflater,
             R.layout.score_fragment,
             container,
@@ -50,8 +54,28 @@ class ScoreFragment : Fragment() {
         viewModelFactory =
             ScoreViewModelFactory(ScoreFragmentArgs.fromBundle(requireArguments()).score)
         viewModel = ViewModelProvider(this, viewModelFactory).get(ScoreViewModel::class.java)
-        binding.scoreText.text = viewModel.score.toString()
+
+        updateScore()
+        detectPlayAgain()
+
+        binding.playAgainButton.setOnClickListener {  viewModel.onPlayAgain()  }
 
         return binding.root
+    }
+
+    private fun updateScore() {
+        viewModel.score.observe(viewLifecycleOwner, Observer { newScore ->
+            binding.scoreText.text = newScore.toString()
+        })
+    }
+
+    private fun detectPlayAgain() {
+        viewModel.eventPlayAgain.observe(viewLifecycleOwner, Observer { hasPlayAgain ->
+            if (hasPlayAgain) {
+                findNavController().navigate(ScoreFragmentDirections.actionRestart())
+                viewModel.onPlayAgainComplete()
+            }
+        })
+
     }
 }
